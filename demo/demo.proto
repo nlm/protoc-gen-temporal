@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package demo;
+
+option go_package = ".;demo";
+
+message Demo {
+  string pipo = 1;
+}
+
+enum MyEnum {
+  zero = 0;
+  one = 1;
+  two = 2;
+}
