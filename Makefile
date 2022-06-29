@@ -4,13 +4,19 @@ PROG=protoc-gen-demo
 
 build: $(PROG)
 
-$(PROG): main.go
-	go build -o protoc-gen-demo main.go
+$(PROG): ./cmd/$(PROG)/*.go
+	go build ./cmd/$(PROG)/
 
-.PHONY: proto
+.PHONY: proto demoproto demo clean
 
 proto: demo/demo.proto
 	protoc --go_out=demo demo/demo.proto
 
-demo: demo/demo.proto $(PROG)
-	protoc --demo_out=demo --plugin protoc-gen-demo=protoc-gen-demo demo/demo.proto
+demoproto: demo/demo.proto $(PROG)
+	protoc --demo_out=demo --plugin $(PROG)=$(PROG) demo/demo.proto
+
+demo: demoproto
+	go run ./cmd/demo
+
+clean:
+	rm -f $(PROG) demo/demo.demo.go
