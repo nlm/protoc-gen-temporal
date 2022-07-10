@@ -7,16 +7,22 @@ build: $(PROG)
 $(PROG): ./cmd/$(PROG)/*.go
 	go build ./cmd/$(PROG)/
 
-.PHONY: proto demoproto demo clean
+.PHONY: proto
 
-proto: demo/demo.proto
-	protoc --go_out=demo demo/demo.proto
+proto: demo/demo.pb.go demo/demo.demo.go
 
-demoproto: demo/demo.proto $(PROG)
-	protoc --demo_out=demo --plugin $(PROG)=$(PROG) demo/demo.proto
+demo/demo.pb.go: demo/demo.proto
+	protoc -I demo --go_out=demo --go_opt=paths=source_relative demo.proto
 
-demo: demoproto
+demo/demo.demo.go: demo/demo.proto $(PROG)
+	protoc -I demo --demo_out=demo --demo_opt=paths=source_relative --plugin $(PROG)=$(PROG) demo.proto
+
+.PHONY: demo
+
+demo: proto
 	go run ./cmd/demo
 
+.PHONY: clean
+
 clean:
-	rm -f $(PROG) demo/demo.demo.go
+	rm -f $(PROG) demo/demo.demo.go demo/demo.pb.go
