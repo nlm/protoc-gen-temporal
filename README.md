@@ -1,6 +1,6 @@
-# protoc-gen-demo
+# protoc-gen-temporal
 
-a demo on how to make a minimal protobuf code generator
+Using protobuf and gRPC services to generate Temporal workflows
 
 ## how to use
 
@@ -8,14 +8,40 @@ Build the generator
 
 ```bash
 $ make build
-go build -o protoc-gen-demo main.go
+go build ./cmd/protoc-gen-temporal/
 ```
 
-Use it with protoc
+## demo
+
+Build proto
+
+```bash
+$ make proto
+protoc -I demopb --temporal_out=demopb --temporal_opt=paths=source_relative --plugin protoc-gen-temporal=protoc-gen-temporal demo.proto
+```
+
+Build the demo app
 
 ```bash
 $ make demo
-protoc --demo_out=demo --plugin protoc-gen-demo=protoc-gen-demo demo/demo.proto
-go run ./cmd/demo
-Hello, Demo!
+go build -o demo ./cmd/demo
+```
+
+Start a temporal dev server
+
+```bash
+$ temporal server start-dev
+```
+
+Run the worker
+
+```bash
+$ ./demo -mode worker
+```
+
+Run the client
+
+```bash
+$ ./demo -mode client
+result: Hello, Alice!
 ```

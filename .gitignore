@@ -1,9 +1,0 @@
-<<<<<<< HEAD
-/.vscode
-/protoc-gen-demo
-/demo/*.go
-=======
-/protoc-gen-demo
-/demo/*.go
-/.vscode
->>>>>>> 39129f5 (fix import path, add header)

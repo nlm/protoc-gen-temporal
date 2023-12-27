@@ -1,28 +1,26 @@
-PROG=protoc-gen-demo
+PROG=protoc-gen-temporal
 
 .PHONY: build
 
 build: $(PROG)
 
-$(PROG): ./cmd/$(PROG)/*.go
+$(PROG): ./cmd/$(PROG)/*.go ./cmd/$(PROG)/*.tpl
 	go build ./cmd/$(PROG)/
 
 .PHONY: proto
 
-proto: demo/demo.pb.go demo/demo.demo.go
+proto: demopb/demo.pb.go demopb/demo.temporal.go
 
-demo/demo.pb.go: demo/demo.proto
-	protoc -I demo --go_out=demo --go_opt=paths=source_relative demo.proto
+demopb/demo.pb.go: demopb/demo.proto
+	protoc -I demopb --go_out=demopb --go_opt=paths=source_relative demo.proto
 
-demo/demo.demo.go: demo/demo.proto $(PROG)
-	protoc -I demo --demo_out=demo --demo_opt=paths=source_relative --plugin $(PROG)=$(PROG) demo.proto
+demopb/demo.temporal.go: demopb/demo.proto $(PROG)
+	protoc -I demopb --temporal_out=demopb --temporal_opt=paths=source_relative --plugin $(PROG)=$(PROG) demo.proto
 
-.PHONY: demo
-
-demo: proto
-	go run ./cmd/demo
+demo: ./cmd/demo/*.go
+	go build -o demo ./cmd/demo
 
 .PHONY: clean
 
 clean:
-	rm -f $(PROG) demo/demo.demo.go demo/demo.pb.go
+	rm -f $(PROG) demopb/demo.temporal.go demopb/demo.pb.go
