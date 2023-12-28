@@ -1,21 +1,36 @@
-PROG=protoc-gen-temporal
+GO_PROG=protoc-gen-go-temporal
+PY_PROG=protoc-gen-python-temporal
+DEMOPB_DIR=demopb
+DEMOPB_PROTO=$(DEMOPB_DIR)/demo.proto
+INTERNAL_SOURCES=$(shell find internal)
 
 .PHONY: build
 
-build: $(PROG)
+build: $(GO_PROG) $(PY_PROG)
 
-$(PROG): ./cmd/$(PROG)/*.go ./cmd/$(PROG)/*.tpl
-	go build ./cmd/$(PROG)/
+$(GO_PROG): $(wildcard ./cmd/$(GO_PROG)/*.go) $(INTERNAL_SOURCES)
+	go build -o $@ ./cmd/$(GO_PROG)/
+
+$(PY_PROG): $(wildcard ./cmd/$(PY_PROG)/*.go) $(INTERNAL_SOURCES)
+	go build -o $@ ./cmd/$(PY_PROG)/
 
 .PHONY: proto
 
-proto: demopb/demo.pb.go demopb/demo.temporal.go
+proto: $(DEMOPB_DIR)/demo.pb.go $(DEMOPB_DIR)/demo_temporal.pb.go $(DEMOPB_DIR)/demo_pb2.py $(DEMOPB_DIR)/demo_pb2_temporal.py
 
-demopb/demo.pb.go: demopb/demo.proto
-	protoc -I demopb --go_out=demopb --go_opt=paths=source_relative demo.proto
+$(DEMOPB_DIR)/demo.pb.go: $(DEMOPB_PROTO)
+	protoc -I $(DEMOPB_DIR) --go_out=$(DEMOPB_DIR) --go_opt=paths=source_relative demo.proto
 
-demopb/demo.temporal.go: demopb/demo.proto $(PROG)
-	protoc -I demopb --temporal_out=demopb --temporal_opt=paths=source_relative --plugin $(PROG)=$(PROG) demo.proto
+# $(DEMOPB_DIR)/demo_grpc.pb.go: $(DEMOPB_PROTO)
+# 	protoc -I $(DEMOPB_DIR) --go-grpc_out=$(DEMOPB_DIR) --go-grpc_opt=paths=source_relative demo.proto
+$(DEMOPB_DIR)/demo_pb2.py: $(DEMOPB_PROTO)
+	protoc -I $(DEMOPB_DIR) --python_out=$(DEMOPB_DIR) --plugin protoc-gen-grpc-python=$(shell which grpc_python_plugin) demo.proto
+
+$(DEMOPB_DIR)/demo_pb2_temporal.py: $(DEMOPB_PROTO) $(PY_PROG)
+	protoc -I $(DEMOPB_DIR) --python-temporal_out=$(DEMOPB_DIR) --python-temporal_opt=paths=source_relative --plugin $(PY_PROG)=$(PY_PROG) demo.proto
+
+$(DEMOPB_DIR)/demo_temporal.pb.go: $(DEMOPB_PROTO) $(GO_PROG)
+	protoc -I $(DEMOPB_DIR) --go-temporal_out=$(DEMOPB_DIR) --go-temporal_opt=paths=source_relative --plugin $(GO_PROG)=$(GO_PROG) demo.proto
 
 demo: ./cmd/demo/*.go
 	go build -o demo ./cmd/demo
@@ -23,4 +38,4 @@ demo: ./cmd/demo/*.go
 .PHONY: clean
 
 clean:
-	rm -f $(PROG) demopb/demo.temporal.go demopb/demo.pb.go
+	rm -f $(GO_PROG) $(DEMOPB_DIR)/demo_temporal.pb.go $(DEMOPB_DIR)/demo.pb.go

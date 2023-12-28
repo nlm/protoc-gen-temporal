@@ -74,7 +74,7 @@ func Worker() {
 // ------------------------------------------ //
 
 var (
-	flagMode      = flag.String("mode", "", "client or worker")
+	flagMode      = flag.String("mode", "", "'client' or 'worker'")
 	flagTaskQueue = flag.String("taskqueue", "default", "task queue")
 )
 
@@ -85,6 +85,8 @@ func main() {
 		Worker()
 	case "client":
 		Client()
+	case "":
+		log.Fatal("specify '-mode worker' or '-mode client'")
 	default:
 		log.Fatal("unknown mode: ", *flagMode)
 	}
