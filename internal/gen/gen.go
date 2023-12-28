@@ -14,10 +14,6 @@ var goTemplate []byte
 //go:embed templates/python.tpl
 var pyTemplate []byte
 
-// go:embed templates
-// var templatesFS embed.FS
-// var templates = Must(template.ParseFS(Must(fs.Sub(templatesFS, "templates")), "*.tpl"))
-
 type TemplateInput struct {
 	File    *protogen.File
 	GenFile *protogen.GeneratedFile
@@ -29,11 +25,10 @@ const (
 )
 
 var funcs = template.FuncMap{
-	// "ToLowers": strings.ToLower,
-	"PackageName": func(s string) string {
+	"PyPackageName": func(s string) string {
 		return strings.Replace(s, ".proto", "_pb2", -1)
 	},
-	"ImportName": func(s string) string {
+	"PyImportName": func(s string) string {
 		return strings.Replace(s, ".proto", "__pb2", -1)
 	},
 }
